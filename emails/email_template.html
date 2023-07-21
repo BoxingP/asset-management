@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Email</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #F1F2F2;
+        margin: 0;
+        padding: 0;
+    }
+
+    .email-container {
+        background-color: white;
+        padding: 30px;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    hr {
+        border: none;
+        border-top: 2px solid #8E8E8E;
+        margin: 10px 0;
+    }
+
+    .footer {
+        margin-top: 10px;
+        color: #8E8E8E;
+        font-size: 70%;
+    }
+
+    table.dataframe {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    table.dataframe th,
+    table.dataframe td {
+        border: 1px solid #dddddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    table.dataframe th {
+        background-color: #f2f2f2;
+    }
+
+    table.dataframe tr:hover {
+        background-color: #dddddd;
+    }
+    </style>
+</head>
+
+<body>
+    <table class="email-container">
+        <tr>
+            <td>
+                <p><img src="cid:logo"></p>
+                <hr>
+                <p>Dear ${FIRST_NAME},
+                    <p>
+                        <p>I'm writing to inform you about the asset(s) that are currently registered in your name within our organization's inventory system. I kindly request your cooperation in confirming the following asset information.</p>
+                        <div id="table-container">
+                            ${TABLE}
+                        </div>
+                        <p>Please take a moment to review the details provided above and verify their accuracy. If all the information is correct, kindly respond to this email with the confirmation.</p>
+                        <p>In case you notice any discrepancies or have any questions regarding the listed asset(s), please notify me immediately, and I will be more than happy to assist you in resolving the matter.</p>
+                        <p>Thank you.</p>
+                        <p>Best regards,</p>
+                        <p>${SENDER_NAME}</p>
+                        <hr>
+                        <div class="footer">
+                            <span>&copy; ThermoFisher Scientific</span>
+                        </div>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
