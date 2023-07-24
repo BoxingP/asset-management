@@ -25,11 +25,11 @@ def export_dataframe_to_excel(writer, dataframe, sheet_name, columns_width):
             worksheet.write(0, col_idx, col_name, header_format)
 
 
-def group_data(dataframe, group_column, ignore_column):
+def group_data(dataframe, group_column, ignore_column, notification_column):
     filtered_df = dataframe.loc[dataframe[f'{group_column}邮箱'].notna() & (dataframe[f'{group_column}邮箱'] != '')]
     grouped_df = filtered_df.groupby(f'{group_column}邮箱', as_index=False).apply(
         lambda group: group.dropna(subset=['SN号'])).reset_index(drop=True)
-    grouped_df.rename(columns={f'{group_column}邮箱': 'Notification Email', f'{group_column} Band': 'Band'}, inplace=True)
+    grouped_df.rename(columns={f'{group_column}邮箱': notification_column, f'{group_column} Band': 'Band'}, inplace=True)
     grouped_df['Got from'] = group_column
     grouped_df.drop(columns=[f'{ignore_column}邮箱', f'{ignore_column} Band'], inplace=True)
     return grouped_df
@@ -46,22 +46,24 @@ def parse_report():
     report_path = get_report_path()
     excel_file = pd.ExcelFile(report_path[0])
     origin_df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_DATA_SHEET'))
+    key_column = os.getenv('REPORT_PRIMARY_KEY')
+    notification_column = os.getenv('REPORT_SEND_NOTIFICATION_TO_COLUMN')
 
     selected_columns = os.getenv('REPORT_COLUMN').split(',')
     df = origin_df.loc[:, selected_columns]
-    df = df[df['SN号'].notna() & (df['SN号'] != '')].reset_index(drop=True)
-    owner_group = group_data(df, 'Owner', 'User')
-    owner_group_sn = owner_group['SN号'].reset_index(drop=True)
-    new_df = df[~df['SN号'].isin(owner_group_sn)].reset_index(drop=True)
-    user_group = group_data(new_df, 'User', 'Owner')
+    df = df[df[key_column].notna() & (df[key_column] != '')].reset_index(drop=True)
+    owner_group = group_data(df, 'Owner', 'User', notification_column)
+    owner_group_sn = owner_group[key_column].reset_index(drop=True)
+    new_df = df[~df[key_column].isin(owner_group_sn)].reset_index(drop=True)
+    user_group = group_data(new_df, 'User', 'Owner', notification_column)
     processed_df = pd.concat([owner_group, user_group], ignore_index=True)
     processed_df = processed_df[
         (processed_df['Band'] < int(os.getenv('REPORT_IGNORED_BAND'))) | processed_df['Band'].isna()].reset_index(
         drop=True)
 
-    selected_columns = ['SN号', 'Notification Email']
-    final_df = origin_df.merge(processed_df[selected_columns], on='SN号', how='left')
-    final_df['Notification Email'] = final_df['Notification Email'].fillna('')
+    selected_columns = [key_column, notification_column]
+    final_df = origin_df.merge(processed_df[selected_columns], on=key_column, how='left')
+    final_df[notification_column] = final_df[notification_column].fillna('')
 
     with pd.ExcelWriter(report_path[0], engine='xlsxwriter') as writer:
         export_dataframe_to_excel(writer, final_df, os.getenv('REPORT_RESULT_SHEET'),

@@ -18,12 +18,14 @@ def send_notification():
     report_path = get_report_path()
     excel_file = pd.ExcelFile(report_path[0])
     df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_RESULT_SHEET'))
+    key_column = os.getenv('REPORT_PRIMARY_KEY')
+    notification_column = os.getenv('REPORT_SEND_NOTIFICATION_TO_COLUMN')
 
     df.replace({None: '', pd.NA: '', float('nan'): ''}, inplace=True)
-    df = df[df['Notification Email'].notna() & (df['Notification Email'] != '')].reset_index(drop=True)
+    df = df[df[notification_column].notna() & (df[notification_column] != '')].reset_index(drop=True)
 
-    grouped_df = df.groupby('Notification Email').apply(lambda group: group.loc[:, ['SN号', 'Model']])
-    grouped_df.rename(columns={'SN号': 'IT设备编号', 'Model': '型号'}, inplace=True)
+    grouped_df = df.groupby('Send Notification To').apply(lambda group: group.loc[:, [key_column, 'Model']])
+    grouped_df.rename(columns={key_column: 'IT设备编号', 'Model': '型号'}, inplace=True)
     grouped_df['是否在用此设备（是/否）'] = ''
     for email, info in grouped_df.groupby(level=0):
         info.reset_index(drop=True, inplace=True)
