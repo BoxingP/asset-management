@@ -1,3 +1,4 @@
+import datetime
 import os
 import smtplib
 from email.mime.image import MIMEImage
@@ -10,7 +11,7 @@ class Emails(object):
         self.smtp_server = os.getenv('SMTP_SERVER')
         self.port = int(os.getenv('SMTP_PORT'))
         self.sender_email = os.getenv('EMAIL_SENDER')
-        self.subject = os.getenv('EMAIL_SUBJECT')
+        self.subject = os.getenv('EMAIL_SUBJECT').replace('YEAR', str(datetime.datetime.now().year))
         with open(os.path.join(os.path.dirname(__file__), 'signature.png'), 'rb') as file:
             self.signature_img = file.read()
         with open(os.path.join(os.path.dirname(__file__), 'email_template.html'), 'r', encoding='UTF-8') as file:
