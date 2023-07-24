@@ -31,16 +31,22 @@ def parse_report():
     load_dotenv()
     report_path = get_report_path()
     excel_file = pd.ExcelFile(report_path[0])
-    df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_SHEET'))
+    origin_df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_SHEET'))
+
     selected_columns = os.getenv('REPORT_COLUMN').split(',')
-    df = df.loc[:, selected_columns]
+    df = origin_df.loc[:, selected_columns]
     df = df[df['SN号'].notna() & (df['SN号'] != '')].reset_index(drop=True)
     owner_group = group_data(df, 'Owner', 'User')
     owner_group_sn = owner_group['SN号'].reset_index(drop=True)
     new_df = df[~df['SN号'].isin(owner_group_sn)].reset_index(drop=True)
     user_group = group_data(new_df, 'User', 'Owner')
-    final_df = pd.concat([owner_group, user_group], ignore_index=True)
-    final_df = final_df[(final_df['Band'] <= 9) | final_df['Band'].isna()].reset_index(drop=True)
+    processed_df = pd.concat([owner_group, user_group], ignore_index=True)
+    processed_df = processed_df[(processed_df['Band'] <= 9) | processed_df['Band'].isna()].reset_index(drop=True)
+
+    selected_columns = ['SN号', 'Notification Email']
+    final_df = origin_df.merge(processed_df[selected_columns], on='SN号', how='left')
+    final_df['Notification Email'] = final_df['Notification Email'].fillna('')
+
     output_folder = create_folder(os.getenv('OUTPUT_FOLDER'))
     final_df.to_excel(Path(output_folder, 'result.xlsx'), index=False)
 
