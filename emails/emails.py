@@ -11,8 +11,6 @@ class Emails(object):
         self.port = int(os.getenv('SMTP_PORT'))
         self.sender_email = os.getenv('EMAIL_SENDER')
         self.subject = os.getenv('EMAIL_SUBJECT')
-        with open(os.path.join(os.path.dirname(__file__), 'logo.png'), 'rb') as file:
-            self.logo_img = file.read()
         with open(os.path.join(os.path.dirname(__file__), 'signature.png'), 'rb') as file:
             self.signature_img = file.read()
         with open(os.path.join(os.path.dirname(__file__), 'email_template.html'), 'r', encoding='UTF-8') as file:
@@ -46,9 +44,6 @@ class Emails(object):
         self.html = self.html.replace('${SENDER_TITLE}', os.getenv('EMAIL_SENDER_TITLE'))
         self.html = self.html.replace('${SENDER_ADDRESS}', '<br>'.join(os.getenv('EMAIL_SENDER_ADDRESS').split(';')))
         html_part.attach(MIMEText(self.html, "html"))
-        logo_image = MIMEImage(self.logo_img)
-        logo_image.add_header('Content-ID', '<logo>')
-        html_part.attach(logo_image)
         signature_image = MIMEImage(self.signature_img)
         signature_image.add_header('Content-ID', '<signature>')
         html_part.attach(signature_image)
