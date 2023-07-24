@@ -41,7 +41,8 @@ def parse_report():
     new_df = df[~df['SN号'].isin(owner_group_sn)].reset_index(drop=True)
     user_group = group_data(new_df, 'User', 'Owner')
     processed_df = pd.concat([owner_group, user_group], ignore_index=True)
-    processed_df = processed_df[(processed_df['Band'] <= 9) | processed_df['Band'].isna()].reset_index(drop=True)
+    processed_df = processed_df[
+        (processed_df['Band'] < int(os.getenv('IGNORED_BAND'))) | processed_df['Band'].isna()].reset_index(drop=True)
 
     selected_columns = ['SN号', 'Notification Email']
     final_df = origin_df.merge(processed_df[selected_columns], on='SN号', how='left')
