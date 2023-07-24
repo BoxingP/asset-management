@@ -49,36 +49,43 @@
         background-color: #f2f2f2;
     }
 
-    table.dataframe tr:hover {
-        background-color: #dddddd;
+    #highlight {
+        background-color: yellow;
     }
     </style>
 </head>
 
 <body>
-    <table class="email-container">
-        <tr>
-            <td>
-                <p><img src="cid:logo"></p>
-                <hr>
-                <p>Dear ${FIRST_NAME},
-                    <p>
-                        <p>I'm writing to inform you about the asset(s) that are currently registered in your name within our organization's inventory system. I kindly request your cooperation in confirming the following asset information.</p>
-                        <div id="table-container">
-                            ${TABLE}
-                        </div>
-                        <p>Please take a moment to review the details provided above and verify their accuracy. If all the information is correct, kindly respond to this email with the confirmation.</p>
-                        <p>In case you notice any discrepancies or have any questions regarding the listed asset(s), please notify me immediately, and I will be more than happy to assist you in resolving the matter.</p>
-                        <p>Thank you.</p>
-                        <p>Best regards,</p>
-                        <p>${SENDER_NAME}</p>
-                        <hr>
-                        <div class="footer">
-                            <span>&copy; ThermoFisher Scientific</span>
-                        </div>
-            </td>
-        </tr>
-    </table>
+<table class="email-container">
+    <tr>
+        <td>
+            <img src="cid:logo">
+            <hr>
+            <p>${RECEIVER} 您好,</p>
+            <p>为了配合本年度IT资产盘点工作，请您登录<a href="${ASSET_URL}" target="_blank">IT资产管理系统</a>确认您名下的IT资产信息（笔记本以及台式机电脑）并且完成自助盘点工作。</p>
+            <p><span id="highlight">若您不便使用资产管理系统，请您确认以下资产信息，并且回复此邮件至 <a href="mailto:${IT_SUPPORT_EMAIL}">China IT Support &lt;${IT_SUPPORT_EMAIL}&gt;</a>。</span></p>
+            <div id="table-container">
+                ${TABLE}
+            </div>
+            <p>以下是您可能需要了解的使用资产管理系统的知识：</p>
+            <ul>
+                <li>Q: 登录系统的用户名和密码是什么？<br>A: 使用您的公司邮箱和Windows登录密码即可登录。请注意您需要输入完整的邮箱。</li>
+                <li>Q: 我看到了不属于我在用的设备，怎么办？<br>A: 可以在系统内提交异常情况，并加以备注说明。</li>
+            </ul>
+            <br>
+            <p>${SENDER}<br>${SENDER_TITLE}</p>
+            <address>
+                <img src="cid:signature"><br>
+                ${SENDER_ADDRESS}<br>
+                <a href="www.thermofisher.com">www.thermofisher.com</a>
+            </address>
+            <hr>
+            <div class="footer">
+                <span>&copy; ThermoFisher Scientific</span>
+            </div>
+        </td>
+    </tr>
+</table>
 </body>
 
 </html>

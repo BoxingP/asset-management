@@ -22,8 +22,9 @@ def send_notification():
     df.replace({None: '', pd.NA: '', float('nan'): ''}, inplace=True)
     df['Most recent discovery'] = df['Most recent discovery'].astype(str).replace('NaT', '')
 
-    grouped_df = df.groupby('Notification Email').apply(
-        lambda group: group.drop(columns=['Notification Email', 'Band', 'Got from']))
+    grouped_df = df.groupby('Notification Email').apply(lambda group: group.loc[:, ['SN号', 'Manufacturer']])
+    grouped_df.rename(columns={'SN号': 'IT设备编号', 'Manufacturer': '型号'}, inplace=True)
+    grouped_df['是否在用此设备（是/否）'] = ''
     for email, info in grouped_df.groupby(level=0):
         info.reset_index(drop=True, inplace=True)
         info_html = info.to_html(index=False)

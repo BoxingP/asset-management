@@ -13,12 +13,24 @@ class Emails(object):
         self.subject = os.getenv('EMAIL_SUBJECT')
         with open(os.path.join(os.path.dirname(__file__), 'logo.png'), 'rb') as file:
             self.logo_img = file.read()
+        with open(os.path.join(os.path.dirname(__file__), 'signature.png'), 'rb') as file:
+            self.signature_img = file.read()
         with open(os.path.join(os.path.dirname(__file__), 'email_template.html'), 'r', encoding='UTF-8') as file:
             self.html = file.read()
 
-    def extract_name(self, email):
-        name = email.split('@')[0]
-        return name.split('.')[0].capitalize()
+    def extract_name(self, email, is_firstname=False):
+        username, domain = email.split('@')
+        if '.' in username:
+            first_name, last_name = username.split('.')
+            first_name = first_name.capitalize()
+            last_name = last_name.capitalize()
+            full_name = f'{first_name} {last_name}'
+        else:
+            full_name = first_name = username.capitalize()
+        if is_firstname:
+            return first_name
+        else:
+            return full_name
 
     def send_email(self, receiver, info):
         message = MIMEMultipart("alternative")
@@ -26,15 +38,20 @@ class Emails(object):
         message["From"] = self.sender_email
         message["To"] = receiver
         html_part = MIMEMultipart("related")
-        first_name = self.extract_name(receiver)
-        self.html = self.html.replace('${FIRST_NAME}', first_name)
-        sender_name = self.extract_name(receiver)
-        self.html = self.html.replace('${SENDER_NAME}', sender_name)
+        self.html = self.html.replace('${RECEIVER}', self.extract_name(receiver, is_firstname=True))
+        self.html = self.html.replace('${ASSET_URL}', os.getenv('EMAIL_ASSET_URL'))
+        self.html = self.html.replace('${IT_SUPPORT_EMAIL}', os.getenv('EMAIL_IT_SUPPORT_MAILBOX'))
         self.html = self.html.replace('${TABLE}', info)
+        self.html = self.html.replace('${SENDER}', self.extract_name(os.getenv('EMAIL_SENDER')))
+        self.html = self.html.replace('${SENDER_TITLE}', os.getenv('EMAIL_SENDER_TITLE'))
+        self.html = self.html.replace('${SENDER_ADDRESS}', '<br>'.join(os.getenv('EMAIL_SENDER_ADDRESS').split(';')))
         html_part.attach(MIMEText(self.html, "html"))
         logo_image = MIMEImage(self.logo_img)
         logo_image.add_header('Content-ID', '<logo>')
         html_part.attach(logo_image)
+        signature_image = MIMEImage(self.signature_img)
+        signature_image.add_header('Content-ID', '<signature>')
+        html_part.attach(signature_image)
         message.attach(html_part)
 
         print(f'Send email to {receiver}')
