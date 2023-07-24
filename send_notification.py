@@ -8,7 +8,7 @@ from emails.emails import Emails
 
 
 def get_report_path():
-    report_folder_path = Path('/', *os.getenv('OUTPUT_FOLDER').split(',')).resolve().absolute()
+    report_folder_path = Path('/', *os.getenv('REPORT_FOLDER').split(',')).resolve().absolute()
     files = report_folder_path.glob('*.xlsx')
     return [file.absolute() for file in files]
 
@@ -17,7 +17,7 @@ def send_notification():
     load_dotenv()
     report_path = get_report_path()
     excel_file = pd.ExcelFile(report_path[0])
-    df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_SHEET'))
+    df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_RESULT_SHEET'))
 
     df.replace({None: '', pd.NA: '', float('nan'): ''}, inplace=True)
     df = df[df['Notification Email'].notna() & (df['Notification Email'] != '')].reset_index(drop=True)
