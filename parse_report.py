@@ -48,6 +48,7 @@ def parse_report():
     origin_df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_DATA_SHEET'))
     key_column = os.getenv('REPORT_PRIMARY_KEY')
     notification_column = os.getenv('REPORT_SEND_NOTIFICATION_TO_COLUMN')
+    statistical_column = os.getenv('REPORT_STATISTICAL_COLUMN')
 
     selected_columns = os.getenv('REPORT_COLUMN').split(',')
     df = origin_df.loc[:, selected_columns]
@@ -65,9 +66,17 @@ def parse_report():
     final_df = origin_df.merge(processed_df[selected_columns], on=key_column, how='left')
     final_df[notification_column] = final_df[notification_column].fillna('')
 
+    summary_df = final_df.groupby(notification_column)[key_column].size().reset_index()
+    summary_df.rename(columns={key_column: statistical_column}, inplace=True)
+    summary_df = summary_df.sort_values(by=statistical_column, ascending=False)
+    total_row = pd.DataFrame(
+        {notification_column: ['Total'], statistical_column: [summary_df[statistical_column].sum()]})
+    summary_df = pd.concat([summary_df, total_row], ignore_index=True)
+
     with pd.ExcelWriter(report_path[0], engine='xlsxwriter') as writer:
         export_dataframe_to_excel(writer, final_df, os.getenv('REPORT_RESULT_SHEET'),
                                   [11, 20, 16, 16, 30, 25, 30, 13, 13, 30])
+        export_dataframe_to_excel(writer, summary_df, os.getenv('REPORT_SUMMARY_SHEET'), [30, 15])
 
 
 if __name__ == '__main__':
