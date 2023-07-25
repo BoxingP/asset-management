@@ -5,85 +5,93 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alert Email</title>
+    <title>Notification Email</title>
     <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #F1F2F2;
-        margin: 0;
-        padding: 0;
-    }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F1F2F2;
+            margin: 0;
+            padding: 0;
+        }
 
-    .email-container {
-        background-color: white;
-        padding: 30px;
-        max-width: 1100px;
-        margin: 0 auto;
-    }
+        .email-container {
+            background-color: white;
+            padding: 30px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
 
-    hr {
-        border: none;
-        border-top: 2px solid #8E8E8E;
-        margin: 10px 0;
-    }
+        hr {
+            border: none;
+            border-top: 2px solid #8E8E8E;
+            margin: 10px 0;
+        }
 
-    .footer {
-        margin-top: 10px;
-        color: #8E8E8E;
-        font-size: 70%;
-    }
+        .footer {
+            margin-top: 10px;
+            color: #8E8E8E;
+            font-size: 70%;
+        }
 
-    table.dataframe {
-        border-collapse: collapse;
-        width: 100%;
-    }
+        table.dataframe {
+            border-collapse: collapse;
+            width: 100%;
+            background-color: white;
+        }
 
-    table.dataframe th,
-    table.dataframe td {
-        border: 1px solid #dddddd;
-        padding: 8px;
-        text-align: left;
-    }
+        table.dataframe th,
+        table.dataframe td {
+            border: 1px solid #DDDDDD;
+            padding: 8px;
+            text-align: left;
+        }
 
-    table.dataframe th {
-        background-color: #f2f2f2;
-    }
+        table.dataframe th {
+            background-color: #F2F2F2;
+        }
 
-    #highlight {
-        background-color: yellow;
-    }
+        #highlight {
+            background-color: yellow;
+        }
     </style>
 </head>
 
 <body>
-<table class="email-container">
-    <tr>
-        <td>
-            <p>${RECEIVER} 您好,</p>
-            <p>IT团队正在进行例行盘点，请您登录<a href="${ASSET_URL}" target="_blank">IT资产管理系统(http://itassetmanagement)</a>确认您名下的IT资产信息（笔记本以及台式机电脑）的使用情况。</p>
-            <p>以下是您可能需要了解的使用资产管理系统的知识：</p>
-            <ul>
-                <li>Q: 登录系统的用户名和密码是什么？<br>A: 使用您的公司邮箱和Windows登录密码即可登录。请注意您需要输入完整的邮箱。</li>
-                <li>Q: 我看到了不属于我在用的设备，怎么办？<br>A: 可以在系统内提交异常情况，并加以备注说明。</li>
-            </ul>
-            <p><span id="highlight">若您不便使用资产管理系统，请您确认以下资产信息，并且回复此邮件至 <a href="mailto:${IT_SUPPORT_EMAIL}">China IT Support &lt;${IT_SUPPORT_EMAIL}&gt;</a>。</span></p>
-            <div id="table-container">
-                ${TABLE}
-            </div>
-            <br>
-            <p>${SENDER}<br>${SENDER_TITLE}</p>
-            <address>
-                <img src="cid:signature"><br>
-                ${SENDER_ADDRESS}<br>
-                <a href="www.thermofisher.com">www.thermofisher.com</a>
-            </address>
-            <hr>
-            <div class="footer">
-                <span>&copy; Thermo Fisher Scientific</span>
-            </div>
-        </td>
-    </tr>
-</table>
+    <table class="email-container">
+        <tr>
+            <td>
+                <p>${RECEIVER} 您好,</p>
+                <p>IT团队正在进行例行盘点，请您登录 <a href="${ASSET_URL}" target="_blank">IT资产管理系统(http://itassetmanagement)</a> 确认您名下的IT资产信息（笔记本以及台式机电脑）的使用情况。</p>
+
+                <p>以下是您可能需要了解的使用资产管理系统的知识：</p>
+                <ul>
+                    <li>Q: 登录系统的用户名和密码是什么？<br>A: 使用您的公司邮箱和Windows登录密码即可登录。请注意您需要输入完整的邮箱。</li>
+                    <li>Q: 我看到了不属于我在用的设备，怎么办？<br>A: 可以在系统内提交异常情况，并加以备注说明。</li>
+                </ul>
+
+                <p><span id="highlight">若您不便使用资产管理系统，请您确认以下资产信息，并且回复此邮件至 <a href="mailto:${IT_SUPPORT_EMAIL}">China IT Support &lt;${IT_SUPPORT_EMAIL}&gt;</a>。</span></p>
+
+                <div id="table-container">
+                    ${TABLE}
+                </div>
+
+                <br>
+                <p>${SENDER}<br>${SENDER_TITLE}</p>
+
+                <address>
+                    <img src="cid:signature"><br>
+                    ${SENDER_ADDRESS}<br>
+                    <a href="www.thermofisher.com">www.thermofisher.com</a>
+                </address>
+
+                <hr>
+
+                <div class="footer">
+                    <span>&copy; Thermo Fisher Scientific</span>
+                </div>
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>
