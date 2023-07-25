@@ -51,6 +51,10 @@ class Emails(object):
         html_part.attach(signature_image)
         message.attach(html_part)
 
-        print(f'Send email to {receiver}')
-        with smtplib.SMTP(self.smtp_server, self.port) as server:
-            server.sendmail(from_addr=self.sender_email, to_addrs=[receiver], msg=message.as_string())
+        try:
+            with smtplib.SMTP(self.smtp_server, self.port) as server:
+                server.sendmail(from_addr=self.sender_email, to_addrs=[receiver], msg=message.as_string())
+            print(f'Successfully sent email to {receiver}')
+        except smtplib.SMTPRecipientsRefused as e:
+            for recipient, (code, message) in e.recipients.items():
+                print(f'Failed to send email to {recipient}: {code} - {message}')
