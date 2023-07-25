@@ -40,6 +40,7 @@ class Emails(object):
         self.html = self.html.replace('${RECEIVER}', self.extract_name(receiver, is_firstname=True))
         self.html = self.html.replace('${ASSET_URL}', os.getenv('EMAIL_ASSET_URL'))
         self.html = self.html.replace('${IT_SUPPORT_EMAIL}', os.getenv('EMAIL_IT_SUPPORT_MAILBOX'))
+        self.html = self.html.replace('${EMAIL_SUBJECT}', self.subject)
         self.html = self.html.replace('${TABLE}', info)
         self.html = self.html.replace('${SENDER}', self.extract_name(os.getenv('EMAIL_SENDER')))
         self.html = self.html.replace('${SENDER_TITLE}', os.getenv('EMAIL_SENDER_TITLE'))
