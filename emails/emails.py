@@ -19,10 +19,10 @@ class Emails(object):
 
     def extract_name(self, email, is_firstname=False):
         username, domain = email.split('@')
-        if '.' in username:
-            first_name, last_name = username.split('.')
-            first_name = first_name.capitalize()
-            last_name = last_name.capitalize()
+        name_parts = username.split('.')
+        if len(name_parts) >= 2:
+            first_name = '.'.join(name_parts[:-1]).capitalize()
+            last_name = name_parts[-1].capitalize()
             full_name = f'{first_name} {last_name}'
         else:
             full_name = first_name = username.capitalize()
