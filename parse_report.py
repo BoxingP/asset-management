@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -29,6 +30,16 @@ def filter_band(dataframe, notification_column, band_column, band: int):
     dataframe[band_column] = dataframe[band_column].apply(pd.to_numeric, errors='coerce')
     dataframe[band_column] = dataframe.groupby(notification_column)[band_column].transform('max')
     dataframe = dataframe[(dataframe[band_column] < band) | dataframe[band_column].isna()].reset_index(drop=True)
+    return dataframe
+
+
+def normalize_domain(email):
+    return re.sub(r'@thermofisher\.com[^a-zA-Z]*', '@thermofisher.com', email)
+
+
+def normalize_email(dataframe, notification_column):
+    dataframe[notification_column] = dataframe[notification_column].str.strip().str.lower()
+    dataframe[notification_column] = dataframe[notification_column].apply(normalize_domain)
     return dataframe
 
 
@@ -67,6 +78,8 @@ def parse_report():
     new_df = df[~df[key_column].isin(owner_group_sn)].reset_index(drop=True)
     user_group = group_data(new_df, 'User', 'Owner', notification_column, band_column)
     processed_df = pd.concat([owner_group, user_group], ignore_index=True)
+
+    processed_df = normalize_email(processed_df, notification_column)
     processed_df = filter_band(processed_df, notification_column, band_column, int(os.getenv('REPORT_IGNORED_BAND')))
 
     selected_columns = [key_column, notification_column]
