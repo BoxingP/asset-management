@@ -25,7 +25,7 @@ def send_notification():
     df.replace({None: '', pd.NA: '', float('nan'): ''}, inplace=True)
     df = df[df[notification_column].notna() & (df[notification_column] != '')].reset_index(drop=True)
 
-    grouped_df = df.groupby('Send Notification To').apply(lambda group: group.loc[:, [key_column, model_column]])
+    grouped_df = df.groupby(notification_column).apply(lambda group: group.loc[:, [key_column, model_column]])
     grouped_df.rename(columns={key_column: 'IT设备编号', model_column: '型号'}, inplace=True)
     grouped_df['是否在用此设备（是/否）'] = ''
     for email, info in grouped_df.groupby(level=0):
