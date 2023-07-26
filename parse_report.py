@@ -74,8 +74,8 @@ def parse_report():
     summary_df = pd.concat([summary_df, total_row], ignore_index=True)
 
     with pd.ExcelWriter(report_path[0], engine='xlsxwriter') as writer:
-        export_dataframe_to_excel(writer, final_df, os.getenv('REPORT_RESULT_SHEET'),
-                                  [11, 20, 16, 16, 30, 25, 30, 13, 13, 30])
+        export_dataframe_to_excel(writer, final_df, os.getenv('REPORT_DATA_SHEET'),
+                                  [11, 20, 16, 16, 30, 25, 30, 13, 13, 30, 15, 15, 15, 12, 12, 19, 15, 8, 30])
         export_dataframe_to_excel(writer, summary_df, os.getenv('REPORT_SUMMARY_SHEET'), [30, 15])
 
 

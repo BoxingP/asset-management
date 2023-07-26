@@ -17,7 +17,7 @@ def send_notification():
     load_dotenv()
     report_path = get_report_path()
     excel_file = pd.ExcelFile(report_path[0])
-    df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_RESULT_SHEET'))
+    df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_DATA_SHEET'))
     key_column = os.getenv('REPORT_PRIMARY_KEY')
     model_column = os.getenv('REPORT_MODEL_COLUMN')
     notification_column = os.getenv('REPORT_SEND_NOTIFICATION_TO_COLUMN')
