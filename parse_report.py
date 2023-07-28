@@ -3,10 +3,11 @@ import re
 from pathlib import Path
 
 import pandas as pd
+import wcwidth
 from dotenv import load_dotenv
 
 
-def export_dataframe_to_excel(writer, dataframe, sheet_name, columns_width):
+def export_dataframe_to_excel(writer, dataframe, sheet_name):
     workbook = writer.book
     if sheet_name in workbook.sheetnames:
         workbook[sheet_name].clear()
@@ -19,11 +20,10 @@ def export_dataframe_to_excel(writer, dataframe, sheet_name, columns_width):
     })
     dataframe.to_excel(writer, sheet_name=sheet_name, index=False)
     worksheet = writer.sheets[sheet_name]
-    for i, width in enumerate(columns_width):
-        worksheet.set_column(i, i, width)
+    columns_width = [max(len(str(col)), wcwidth.wcswidth(col)) + 4 for col in dataframe.columns]
     for col_idx, col_name in enumerate(dataframe.columns):
-        if col_idx < len(columns_width):
-            worksheet.write(0, col_idx, col_name, header_format)
+        worksheet.set_column(col_idx, col_idx, columns_width[col_idx])
+        worksheet.write(0, col_idx, col_name, header_format)
 
 
 def filter_band(dataframe, notification_column, band_column, band: int):
@@ -94,9 +94,8 @@ def parse_report():
     summary_df = pd.concat([summary_df, total_row], ignore_index=True)
 
     with pd.ExcelWriter(report_path[0], engine='xlsxwriter') as writer:
-        export_dataframe_to_excel(writer, final_df, os.getenv('REPORT_DATA_SHEET'),
-                                  [11, 20, 16, 16, 30, 25, 30, 13, 13, 30, 15, 15, 15, 12, 12, 19, 15, 8, 30])
-        export_dataframe_to_excel(writer, summary_df, os.getenv('REPORT_SUMMARY_SHEET'), [30, 15])
+        export_dataframe_to_excel(writer, final_df, os.getenv('REPORT_DATA_SHEET'))
+        export_dataframe_to_excel(writer, summary_df, os.getenv('REPORT_SUMMARY_SHEET'))
 
 
 if __name__ == '__main__':
