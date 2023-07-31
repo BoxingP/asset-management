@@ -50,7 +50,7 @@ def normalize_email(dataframe, notification_column):
 
 
 def group_data(dataframe, group_column, ignore_column, notification_column, band_column):
-    filtered_df = dataframe.loc[dataframe[f'{group_column}邮箱'].notna() & (dataframe[f'{group_column}邮箱'] != '')]
+    filtered_df = filter_nonempty_data(dataframe, f'{group_column}邮箱')
     grouped_df = filtered_df.groupby(f'{group_column}邮箱', as_index=False).apply(
         lambda group: group.dropna(subset=['SN号'])).reset_index(drop=True)
     grouped_df.rename(columns={f'{group_column}邮箱': notification_column, f'{group_column} Band': band_column},
@@ -58,6 +58,10 @@ def group_data(dataframe, group_column, ignore_column, notification_column, band
     grouped_df['Got from'] = group_column
     grouped_df.drop(columns=[f'{ignore_column}邮箱', f'{ignore_column} Band'], inplace=True)
     return grouped_df
+
+
+def filter_nonempty_data(dataframe, column):
+    return dataframe[dataframe[column].notna() & (dataframe[column] != '')].reset_index(drop=True)
 
 
 def get_report_path():
@@ -78,18 +82,18 @@ def parse_report():
 
     selected_columns = os.getenv('REPORT_COLUMN').split(',')
     df = origin_df.loc[:, selected_columns]
-    df = df[df[key_column].notna() & (df[key_column] != '')].reset_index(drop=True)
-    owner_group = group_data(df, 'Owner', 'User', notification_column, band_column)
-    owner_group_sn = owner_group[key_column].reset_index(drop=True)
-    new_df = df[~df[key_column].isin(owner_group_sn)].reset_index(drop=True)
-    user_group = group_data(new_df, 'User', 'Owner', notification_column, band_column)
-    processed_df = pd.concat([owner_group, user_group], ignore_index=True)
+    df = filter_nonempty_data(df, key_column)
+    owner_group_df = group_data(df, 'Owner', 'User', notification_column, band_column)
+    owner_group_sn = owner_group_df[key_column].reset_index(drop=True)
+    owner_group_remainder_df = df[~df[key_column].isin(owner_group_sn)].reset_index(drop=True)
+    user_group_df = group_data(owner_group_remainder_df, 'User', 'Owner', notification_column, band_column)
+    group_df = pd.concat([owner_group_df, user_group_df], ignore_index=True)
 
-    processed_df = normalize_email(processed_df, notification_column)
-    processed_df = filter_band(processed_df, notification_column, band_column, int(os.getenv('REPORT_IGNORED_BAND')))
+    group_df = normalize_email(group_df, notification_column)
+    group_df = filter_band(group_df, notification_column, band_column, int(os.getenv('REPORT_IGNORED_BAND')))
 
     selected_columns = [key_column, notification_column]
-    final_df = origin_df.merge(processed_df[selected_columns], on=key_column, how='left')
+    final_df = origin_df.merge(group_df[selected_columns], on=key_column, how='left')
     final_df[notification_column] = final_df[notification_column].fillna('')
     final_df = filter_manufacturer(final_df, os.getenv('REPORT_MANUFACTURER_COLUMN'))
 

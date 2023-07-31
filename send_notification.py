@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 from emails.emails import Emails
 
 
+def filter_nonempty_data(dataframe, column):
+    return dataframe[dataframe[column].notna() & (dataframe[column] != '')].reset_index(drop=True)
+
+
 def get_report_path():
     report_folder_path = Path('/', *os.getenv('REPORT_FOLDER').split(',')).resolve().absolute()
     files = report_folder_path.glob('*.xlsx')
@@ -23,7 +27,7 @@ def send_notification():
     notification_column = os.getenv('REPORT_SEND_NOTIFICATION_TO_COLUMN')
 
     df.replace({None: '', pd.NA: '', float('nan'): ''}, inplace=True)
-    df = df[df[notification_column].notna() & (df[notification_column] != '')].reset_index(drop=True)
+    df = filter_nonempty_data(df, notification_column)
 
     grouped_df = df.groupby(notification_column).apply(lambda group: group.loc[:, [key_column, model_column]])
     grouped_df.rename(columns={key_column: 'IT设备编号', model_column: '型号'}, inplace=True)
