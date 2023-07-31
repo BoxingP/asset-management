@@ -26,6 +26,12 @@ def export_dataframe_to_excel(writer, dataframe, sheet_name):
         worksheet.write(0, col_idx, col_name, header_format)
 
 
+def filter_manufacturer(dataframe, manufacturer_column, include_nan=False):
+    manufacturers = '|'.join(os.getenv('REPORT_MANUFACTURER').split(','))
+    processed_df = dataframe[dataframe[manufacturer_column].str.contains(manufacturers, case=False, na=include_nan)]
+    return processed_df
+
+
 def filter_band(dataframe, notification_column, band_column, band: int):
     dataframe[band_column] = dataframe[band_column].apply(pd.to_numeric, errors='coerce')
     dataframe[band_column] = dataframe.groupby(notification_column)[band_column].transform('max')
@@ -85,6 +91,7 @@ def parse_report():
     selected_columns = [key_column, notification_column]
     final_df = origin_df.merge(processed_df[selected_columns], on=key_column, how='left')
     final_df[notification_column] = final_df[notification_column].fillna('')
+    final_df = filter_manufacturer(final_df, os.getenv('REPORT_MANUFACTURER_COLUMN'))
 
     summary_df = final_df.groupby(notification_column)[key_column].size().reset_index()
     summary_df.rename(columns={key_column: statistical_column}, inplace=True)
