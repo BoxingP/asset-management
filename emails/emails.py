@@ -5,6 +5,8 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from utils.logger import Logger
+
 
 class Emails(object):
     def __init__(self):
@@ -51,10 +53,11 @@ class Emails(object):
         html_part.attach(signature_image)
         message.attach(html_part)
 
+        Logger().info(msg=f'Will send email to {receiver}')
         try:
             with smtplib.SMTP(self.smtp_server, self.port) as server:
                 server.sendmail(from_addr=self.sender_email, to_addrs=[receiver], msg=message.as_string())
-            print(f'Successfully sent email to {receiver}')
+            Logger().info(msg=f'Successfully sent email to {receiver}')
         except smtplib.SMTPRecipientsRefused as e:
             for recipient, (code, message) in e.recipients.items():
-                print(f'Failed to send email to {recipient}: {code} - {message}')
+                Logger().error(msg=f'Failed to send email to {recipient}: {code} - {message}')
