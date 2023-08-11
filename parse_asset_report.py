@@ -27,7 +27,7 @@ def export_dataframe_to_excel(writer, dataframe, sheet_name):
 
 
 def filter_manufacturer(dataframe, manufacturer_column, include_nan=False):
-    manufacturers = '|'.join(os.getenv('REPORT_MANUFACTURER').split(','))
+    manufacturers = '|'.join(os.getenv('ASSET_REPORT_MANUFACTURER').split(','))
     processed_df = dataframe[dataframe[manufacturer_column].str.contains(manufacturers, case=False, na=include_nan)]
     return processed_df
 
@@ -64,23 +64,17 @@ def filter_nonempty_data(dataframe, column):
     return dataframe[dataframe[column].notna() & (dataframe[column] != '')].reset_index(drop=True)
 
 
-def get_report_path():
-    report_folder_path = Path('/', *os.getenv('REPORT_FOLDER').split(',')).resolve().absolute()
-    files = report_folder_path.glob('*.xlsx')
-    return [file.absolute() for file in files]
-
-
 def parse_report():
     load_dotenv()
-    report_path = get_report_path()
-    excel_file = pd.ExcelFile(report_path[0])
-    origin_df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_DATA_SHEET'))
-    key_column = os.getenv('REPORT_PRIMARY_KEY')
-    notification_column = os.getenv('REPORT_SEND_NOTIFICATION_TO_COLUMN')
+    report_folder_path = Path('/', *os.getenv('REPORT_FOLDER').split(',')).resolve()
+    excel_file = pd.ExcelFile(Path(report_folder_path, os.getenv('ASSET_REPORT_NAME')))
+    origin_df = pd.read_excel(excel_file, sheet_name=os.getenv('ASSET_REPORT_DATA_SHEET'))
+    key_column = os.getenv('ASSET_REPORT_PRIMARY_KEY')
+    notification_column = os.getenv('ASSET_REPORT_SEND_NOTIFICATION_TO_COLUMN')
     band_column = 'Band'
-    statistical_column = os.getenv('REPORT_STATISTICAL_COLUMN')
+    statistical_column = os.getenv('ASSET_REPORT_STATISTICAL_COLUMN')
 
-    selected_columns = os.getenv('REPORT_COLUMN').split(',')
+    selected_columns = os.getenv('ASSET_REPORT_COLUMN').split(',')
     df = origin_df.loc[:, selected_columns]
     df = filter_nonempty_data(df, key_column)
     owner_group_df = group_data(df, 'Owner', 'User', notification_column, band_column)
@@ -90,12 +84,12 @@ def parse_report():
     group_df = pd.concat([owner_group_df, user_group_df], ignore_index=True)
 
     group_df = normalize_email(group_df, notification_column)
-    group_df = filter_band(group_df, notification_column, band_column, int(os.getenv('REPORT_IGNORED_BAND')))
+    group_df = filter_band(group_df, notification_column, band_column, int(os.getenv('ASSET_REPORT_IGNORED_BAND')))
 
     selected_columns = [key_column, notification_column]
     final_df = origin_df.merge(group_df[selected_columns], on=key_column, how='left')
     final_df[notification_column] = final_df[notification_column].fillna('')
-    final_df = filter_manufacturer(final_df, os.getenv('REPORT_MANUFACTURER_COLUMN'))
+    final_df = filter_manufacturer(final_df, os.getenv('ASSET_REPORT_MANUFACTURER_COLUMN'))
 
     summary_df = final_df.groupby(notification_column)[key_column].size().reset_index()
     summary_df.rename(columns={key_column: statistical_column}, inplace=True)
@@ -104,9 +98,12 @@ def parse_report():
         {notification_column: ['Total'], statistical_column: [summary_df[statistical_column].sum()]})
     summary_df = pd.concat([summary_df, total_row], ignore_index=True)
 
-    with pd.ExcelWriter(report_path[0], engine='xlsxwriter') as writer:
-        export_dataframe_to_excel(writer, final_df, os.getenv('REPORT_DATA_SHEET'))
-        export_dataframe_to_excel(writer, summary_df, os.getenv('REPORT_SUMMARY_SHEET'))
+    output_folder_path = Path('/', *os.getenv('OUTPUT_FOLDER').split(',')).resolve()
+    if not os.path.exists(output_folder_path):
+        os.makedirs(output_folder_path)
+    with pd.ExcelWriter(Path(output_folder_path, os.getenv('ASSET_REPORT_OUTPUT')), engine='xlsxwriter') as writer:
+        export_dataframe_to_excel(writer, final_df, os.getenv('ASSET_REPORT_DATA_SHEET'))
+        export_dataframe_to_excel(writer, summary_df, os.getenv('ASSET_REPORT_SUMMARY_SHEET'))
 
 
 if __name__ == '__main__':

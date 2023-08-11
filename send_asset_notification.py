@@ -11,20 +11,14 @@ def filter_nonempty_data(dataframe, column):
     return dataframe[dataframe[column].notna() & (dataframe[column] != '')].reset_index(drop=True)
 
 
-def get_report_path():
-    report_folder_path = Path('/', *os.getenv('REPORT_FOLDER').split(',')).resolve().absolute()
-    files = report_folder_path.glob('*.xlsx')
-    return [file.absolute() for file in files]
-
-
 def send_notification():
     load_dotenv()
-    report_path = get_report_path()
-    excel_file = pd.ExcelFile(report_path[0])
-    df = pd.read_excel(excel_file, sheet_name=os.getenv('REPORT_DATA_SHEET'))
-    key_column = os.getenv('REPORT_PRIMARY_KEY')
-    model_column = os.getenv('REPORT_MODEL_COLUMN')
-    notification_column = os.getenv('REPORT_SEND_NOTIFICATION_TO_COLUMN')
+    output_folder_path = Path('/', *os.getenv('OUTPUT_FOLDER').split(',')).resolve()
+    excel_file = pd.ExcelFile(Path(output_folder_path, os.getenv('ASSET_REPORT_OUTPUT')))
+    df = pd.read_excel(excel_file, sheet_name=os.getenv('ASSET_REPORT_DATA_SHEET'))
+    key_column = os.getenv('ASSET_REPORT_PRIMARY_KEY')
+    model_column = os.getenv('ASSET_REPORT_MODEL_COLUMN')
+    notification_column = os.getenv('ASSET_REPORT_SEND_NOTIFICATION_TO_COLUMN')
 
     df.replace({None: '', pd.NA: '', float('nan'): ''}, inplace=True)
     df = filter_nonempty_data(df, notification_column)
