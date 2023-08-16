@@ -29,7 +29,7 @@ def send_notification():
     for email, info in grouped_df.groupby(level=0):
         info.reset_index(drop=True, inplace=True)
         info_html = info.to_html(index=False)
-        Emails().send_email(email, info_html)
+        Emails('asset').send_asset_email(email, info_html)
 
 
 if __name__ == '__main__':
