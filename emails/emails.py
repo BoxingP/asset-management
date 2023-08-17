@@ -9,6 +9,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 
+import pandas as pd
+
 from utils.email_logger import EmailSendingLogger
 from utils.logger import Logger
 
@@ -102,6 +104,7 @@ class Emails(object):
         html_part = MIMEMultipart("related")
         self.html = self.html.replace('${RECEIVER}', name)
         self.html = self.html.replace('${DATE}', date.strftime('%Y年%m月%d日'))
+        self.html = self.html.replace('${IT_CONTACT}', self.generate_it_contact())
         self.html = self.html.replace('${TABLE}', info)
         self.html = self.html.replace('${IT_SUPPORT_EMAIL}', os.getenv('RETURN_EMAIL_IT_SUPPORT_MAILBOX'))
         html_part.attach(MIMEText(self.html, "html"))
@@ -158,3 +161,10 @@ class Emails(object):
         message.attach(execl_part)
 
         self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
+
+    def generate_it_contact(self):
+        df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'it_contact.csv'), sep=',')
+        df['驻场工程师'] = df['驻场工程师'].str.replace(',', '<br>')
+        df['联系电话'] = df['联系电话'].str.replace(',', '<br>')
+        df['联系邮箱'] = df['联系邮箱'].str.replace(',', '<br>')
+        return df.to_html(index=False, escape=False)
