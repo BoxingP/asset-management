@@ -1,9 +1,13 @@
 import datetime
 import os
 import smtplib
+from email import encoders
+from email.header import Header
+from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 
 from utils.logger import Logger
 
@@ -87,3 +91,26 @@ class Emails(object):
 
         emails = [email, os.getenv('RETURN_EMAIL_CC')]
         self.send_email(sender_email=self.sender_email, receiver_emails=emails, email_content=message)
+
+    def send_return_error_email(self, info):
+        message = MIMEMultipart("alternative")
+        message["Subject"] = self.subject
+        message["From"] = self.sender_email
+        message["To"] = self.sender_email
+        html_part = MIMEMultipart("related")
+        self.html = self.html.replace('${TABLE}', info)
+        html_part.attach(MIMEText(self.html, "html"))
+        signature_image = MIMEImage(self.signature_img)
+        signature_image.add_header('Content-ID', '<signature>')
+        html_part.attach(signature_image)
+        message.attach(html_part)
+        with open(Path('/', *os.getenv('REPORT_FOLDER').split(','), os.getenv('RETURN_REPORT_NAME')).resolve(),
+                  'rb') as attachment:
+            execl_part = MIMEBase("application", "octet-stream")
+            execl_part.set_payload(attachment.read())
+        encoders.encode_base64(execl_part)
+        execl_part.add_header('Content-Disposition', 'attachment',
+                              filename=Header(f"{os.getenv('RETURN_REPORT_NAME')}", 'utf-8').encode())
+        message.attach(execl_part)
+
+        self.send_email(sender_email=self.sender_email, receiver_emails=[self.sender_email], email_content=message)
