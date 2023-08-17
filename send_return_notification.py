@@ -5,6 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 from emails.emails import Emails
+from utils.email_logger import EmailSendingLogger
 
 
 def validate_id_uniqueness(index, dataframe, column):
@@ -60,6 +61,16 @@ def generate_issue_data(dataframe, validate_result, key_column, columns_to_remov
     return result_df.drop(columns=columns_to_remove)
 
 
+def generate_summary_data():
+    df = pd.DataFrame(EmailSendingLogger().get_log_data())
+    df[['name', 'emp_id']] = df['subject'].str.extract(r'IT资产归还提醒\((\D+)(\d+)\)')
+    df['success'] = df['success'].replace({True: 'Y', False: 'N'})
+    df = df[['time', 'emp_id', 'name', 'recipient', 'subject', 'success', 'error_message']]
+    df.rename(columns={'time': '发送时间', 'emp_id': '员工号', 'name': '员工中文名', 'recipient': '收件邮箱',
+                       'subject': '邮件标题', 'success': '是否发送成功', 'error_message': '详细信息'}, inplace=True)
+    return df
+
+
 def send_notification():
     load_dotenv()
     output_folder_path = Path('/', *os.getenv('OUTPUT_FOLDER').split(',')).resolve()
@@ -89,6 +100,9 @@ def send_notification():
         for index, info in grouped_df.groupby(level=0):
             Emails('return').send_return_email(info[id_column][0], info[name_column][0], info[email_column][0],
                                                info[date_column][0], info.to_html(index=False))
+
+        sent_summary_df = generate_summary_data()
+        Emails('return_summary').send_return_summary_email(sent_summary_df.to_html(index=False))
 
 
 if __name__ == '__main__':

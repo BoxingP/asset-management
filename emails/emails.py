@@ -9,6 +9,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 
+from utils.email_logger import EmailSendingLogger
 from utils.logger import Logger
 
 
@@ -37,16 +38,36 @@ class Emails(object):
         else:
             return full_name
 
-    def send_email(self, sender_email, receiver_emails: list, email_content):
-        receivers = ', '.join(receiver_emails)
-        Logger().info(msg=f'Will send email to {receivers}')
+    def send_email(self, sender, to: list, email_content, cc: list = None, bcc: list = None, record_sent: bool = False):
+        receivers = [item for sublist in (to, cc, bcc) if sublist is not None for item in sublist]
+        Logger().info(msg=f"Will send email to {', '.join(receivers)}")
+        logger = EmailSendingLogger()
         try:
             with smtplib.SMTP(self.smtp_server, self.port) as server:
-                server.sendmail(from_addr=sender_email, to_addrs=receiver_emails, msg=email_content.as_string())
-            Logger().info(msg=f'Successfully sent email to {receivers}')
+                send_errs = server.sendmail(from_addr=sender, to_addrs=receivers, msg=email_content.as_string())
+            if not send_errs:
+                Logger().info(msg=f"Successfully sent email to {', '.join(receivers)}")
+                if record_sent:
+                    for recipient in to:
+                        logger.log_email_sent(recipient=recipient, subject=email_content["Subject"], success=True)
+            else:
+                for key, value in send_errs.items():
+                    if key == os.getenv('RETURN_EMAIL_CC'):
+                        continue
+                    code, message = value
+                    error_message = message.decode('utf-8')
+                    Logger().error(msg=f'Failed to send email to {key}: {code} - {error_message}')
+                    if record_sent:
+                        logger.log_email_sent(recipient=key, subject=email_content["Subject"], success=False,
+                                              error_code=code, error_message=error_message)
+
         except smtplib.SMTPRecipientsRefused as e:
             for recipient, (code, message) in e.recipients.items():
-                Logger().error(msg=f'Failed to send email to {recipient}: {code} - {message}')
+                error_message = message.decode('utf-8')
+                Logger().error(msg=f'Failed to send email to {recipient}: {code} - {error_message}')
+                if record_sent:
+                    logger.log_email_sent(recipient=recipient, subject=email_content["Subject"], success=False,
+                                          error_code=code, error_message=error_message)
 
     def send_asset_email(self, receiver, info):
         message = MIMEMultipart("alternative")
@@ -70,7 +91,7 @@ class Emails(object):
         html_part.attach(signature_image)
         message.attach(html_part)
 
-        self.send_email(self.sender_email, [receiver], message)
+        self.send_email(sender=self.sender_email, to=[receiver], email_content=message)
 
     def send_return_email(self, emp_id, name, email, date, info):
         message = MIMEMultipart("alternative")
@@ -89,8 +110,8 @@ class Emails(object):
         html_part.attach(signature_image)
         message.attach(html_part)
 
-        emails = [email, os.getenv('RETURN_EMAIL_CC')]
-        self.send_email(sender_email=self.sender_email, receiver_emails=emails, email_content=message)
+        self.send_email(sender=self.sender_email, to=[email], cc=[os.getenv('RETURN_EMAIL_CC')], email_content=message,
+                        record_sent=True)
 
     def send_return_error_email(self, info):
         message = MIMEMultipart("alternative")
@@ -113,4 +134,27 @@ class Emails(object):
                               filename=Header(f"{os.getenv('RETURN_REPORT_NAME')}", 'utf-8').encode())
         message.attach(execl_part)
 
-        self.send_email(sender_email=self.sender_email, receiver_emails=[self.sender_email], email_content=message)
+        self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
+
+    def send_return_summary_email(self, info):
+        message = MIMEMultipart("alternative")
+        message["Subject"] = self.subject
+        message["From"] = self.sender_email
+        message["To"] = self.sender_email
+        html_part = MIMEMultipart("related")
+        self.html = self.html.replace('${TABLE}', info)
+        html_part.attach(MIMEText(self.html, "html"))
+        signature_image = MIMEImage(self.signature_img)
+        signature_image.add_header('Content-ID', '<signature>')
+        html_part.attach(signature_image)
+        message.attach(html_part)
+        with open(Path('/', *os.getenv('REPORT_FOLDER').split(','), os.getenv('RETURN_REPORT_NAME')).resolve(),
+                  'rb') as attachment:
+            execl_part = MIMEBase("application", "octet-stream")
+            execl_part.set_payload(attachment.read())
+        encoders.encode_base64(execl_part)
+        execl_part.add_header('Content-Disposition', 'attachment',
+                              filename=Header(f"{os.getenv('RETURN_REPORT_NAME')}", 'utf-8').encode())
+        message.attach(execl_part)
+
+        self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
