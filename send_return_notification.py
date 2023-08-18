@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import pandas as pd
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 from emails.emails import Emails
@@ -68,7 +69,13 @@ def generate_summary_data():
     df = df[['time', 'emp_id', 'name', 'recipient', 'subject', 'success', 'error_message']]
     df.rename(columns={'time': '发送时间', 'emp_id': '员工号', 'name': '员工中文名', 'recipient': '收件邮箱',
                        'subject': '邮件标题', 'success': '是否发送成功', 'error_message': '详细信息'}, inplace=True)
-    return df
+    soup = BeautifulSoup(df.to_html(index=False), 'html.parser')
+    rows = soup.find_all('tbody')[0].find_all('tr')
+    for row in rows:
+        success_cell = row.find_all('td')[5]
+        if success_cell.get_text() == 'N':
+            row['class'] = 'failed'
+    return soup.prettify()
 
 
 def send_notification():
@@ -101,8 +108,8 @@ def send_notification():
             Emails('return').send_return_email(info[id_column][0], info[name_column][0], info[email_column][0],
                                                info[date_column][0], info.to_html(index=False))
 
-        sent_summary_df = generate_summary_data()
-        Emails('return_summary').send_return_summary_email(sent_summary_df.to_html(index=False))
+        sent_summary_info = generate_summary_data()
+        Emails('return_summary').send_return_summary_email(sent_summary_info)
 
 
 if __name__ == '__main__':
