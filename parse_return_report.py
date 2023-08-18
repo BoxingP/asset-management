@@ -1,4 +1,5 @@
 import datetime
+import errno
 import os
 from pathlib import Path
 
@@ -30,10 +31,11 @@ def export_dataframe_to_excel(writer, dataframe, sheet_name):
                 sheet.write(row, col_idx, col_value)
         row += 1
     worksheet = writer.sheets[sheet_name]
-    columns_width = [max(len(str(col)), wcwidth.wcswidth(col)) + 4 for col in dataframe.columns]
-    for col_idx, col_name in enumerate(dataframe.columns):
-        worksheet.set_column(col_idx, col_idx, columns_width[col_idx])
-        worksheet.write(0, col_idx, col_name, header_format)
+    if not isinstance(dataframe.columns, pd.RangeIndex):
+        columns_width = [max(len(str(col)), wcwidth.wcswidth(col)) + 4 for col in dataframe.columns]
+        for col_idx, col_name in enumerate(dataframe.columns):
+            worksheet.set_column(col_idx, col_idx, columns_width[col_idx])
+            worksheet.write(0, col_idx, col_name, header_format)
 
 
 def filter_resignation_date(dataframe, date_column, target_month, target_year=datetime.datetime.now().year):
@@ -59,12 +61,20 @@ def get_file_path_by_filename(paths, target_filename):
     return None
 
 
+def get_excel_file():
+    folder_path = Path('/', *os.getenv('REPORT_FOLDER').split(',')).resolve()
+    files = os.listdir(folder_path)
+    excel_files = [Path(folder_path, file) for file in files if file.endswith('.xlsx') or file.endswith('.xls')]
+    if not excel_files:
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), 'related return excel file')
+    else:
+        return excel_files[0]
+
+
 def parse_report():
     load_dotenv()
-    report_folder_path = Path('/', *os.getenv('REPORT_FOLDER').split(',')).resolve()
-    excel_file = pd.ExcelFile(Path(report_folder_path, os.getenv('RETURN_REPORT_NAME')))
-    origin_df = pd.read_excel(excel_file, sheet_name=os.getenv('RETURN_REPORT_DATA_SHEET'),
-                              dtype={'员工号': str, '资产号': str, '序列号': str})
+    excel_file = get_excel_file()
+    origin_df = pd.read_excel(excel_file, dtype={'员工号': str, '资产号': str, '序列号': str})
 
     selected_columns = os.getenv('RETURN_REPORT_COLUMN').split(',')
     df = origin_df.loc[:, selected_columns]
@@ -77,6 +87,8 @@ def parse_report():
         os.makedirs(output_folder_path)
     with pd.ExcelWriter(Path(output_folder_path, os.getenv('RETURN_REPORT_OUTPUT')), engine='xlsxwriter') as writer:
         export_dataframe_to_excel(writer, df, os.getenv('RETURN_REPORT_OUTPUT_SHEET'))
+        export_dataframe_to_excel(writer, pd.DataFrame([[excel_file.__str__()]], columns=None),
+                                  os.getenv('RETURN_REPORT_PATH_SHEET'))
 
 
 if __name__ == '__main__':

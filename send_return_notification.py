@@ -1,4 +1,7 @@
 import os
+from email import encoders
+from email.header import Header
+from email.mime.base import MIMEBase
 from pathlib import Path
 
 import pandas as pd
@@ -78,6 +81,15 @@ def generate_summary_data():
     return soup.prettify()
 
 
+def attach_excel(excel_file):
+    with open(excel_file, 'rb') as attachment:
+        execl = MIMEBase("application", "octet-stream")
+        execl.set_payload(attachment.read())
+    encoders.encode_base64(execl)
+    execl.add_header('Content-Disposition', 'attachment', filename=Header(excel_file.name, 'utf-8').encode())
+    return execl
+
+
 def send_notification():
     load_dotenv()
     output_folder_path = Path('/', *os.getenv('OUTPUT_FOLDER').split(',')).resolve()
@@ -91,6 +103,9 @@ def send_notification():
     state_column = os.getenv('RETURN_REPORT_STATE_COLUMN')
     date_column = os.getenv('RETURN_REPORT_DATE_COLUMN')
     df = pd.read_excel(excel_file, sheet_name=os.getenv('RETURN_REPORT_OUTPUT_SHEET'), dtype={id_column: str})
+    report_path = Path(
+        (pd.read_excel(excel_file, sheet_name=os.getenv('RETURN_REPORT_PATH_SHEET'), dtype={id_column: str})).iloc[
+            0, 0])
 
     copy_df = df
     copy_df[key_column] = copy_df[key_column].str.lower()
@@ -101,7 +116,7 @@ def send_notification():
     validate_result = validate_info(grouped_df, id_column, date_column, sn_column)
     if validate_result:
         issue_data = generate_issue_data(df, validate_result, key_column, [state_column, date_column])
-        Emails('return_error').send_return_error_email(issue_data.to_html(index=False))
+        Emails('return_error').send_return_error_email(issue_data.to_html(index=False), attach_excel(report_path))
     else:
         grouped_df.rename(columns={model_column: '设备型号', sn_column: '设备序列号', state_column: '归还状态'}, inplace=True)
         for index, info in grouped_df.groupby(level=0):
@@ -109,7 +124,7 @@ def send_notification():
                                                info[date_column][0], info.to_html(index=False))
 
         sent_summary_info = generate_summary_data()
-        Emails('return_summary').send_return_summary_email(sent_summary_info)
+        Emails('return_summary').send_return_summary_email(sent_summary_info, attach_excel(report_path))
 
 
 if __name__ == '__main__':

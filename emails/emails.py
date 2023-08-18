@@ -1,13 +1,9 @@
 import datetime
 import os
 import smtplib
-from email import encoders
-from email.header import Header
-from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from pathlib import Path
 
 import pandas as pd
 
@@ -116,7 +112,7 @@ class Emails(object):
         self.send_email(sender=self.sender_email, to=[email], cc=[os.getenv('RETURN_EMAIL_CC')], email_content=message,
                         record_sent=True)
 
-    def send_return_error_email(self, info):
+    def send_return_error_email(self, info, excel_attachment=None):
         message = MIMEMultipart("alternative")
         message["Subject"] = self.subject
         message["From"] = self.sender_email
@@ -128,18 +124,12 @@ class Emails(object):
         signature_image.add_header('Content-ID', '<signature>')
         html_part.attach(signature_image)
         message.attach(html_part)
-        with open(Path('/', *os.getenv('REPORT_FOLDER').split(','), os.getenv('RETURN_REPORT_NAME')).resolve(),
-                  'rb') as attachment:
-            execl_part = MIMEBase("application", "octet-stream")
-            execl_part.set_payload(attachment.read())
-        encoders.encode_base64(execl_part)
-        execl_part.add_header('Content-Disposition', 'attachment',
-                              filename=Header(f"{os.getenv('RETURN_REPORT_NAME')}", 'utf-8').encode())
-        message.attach(execl_part)
+        if excel_attachment is not None:
+            message.attach(excel_attachment)
 
         self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
 
-    def send_return_summary_email(self, info):
+    def send_return_summary_email(self, info, excel_attachment=None):
         message = MIMEMultipart("alternative")
         message["Subject"] = self.subject
         message["From"] = self.sender_email
@@ -151,14 +141,8 @@ class Emails(object):
         signature_image.add_header('Content-ID', '<signature>')
         html_part.attach(signature_image)
         message.attach(html_part)
-        with open(Path('/', *os.getenv('REPORT_FOLDER').split(','), os.getenv('RETURN_REPORT_NAME')).resolve(),
-                  'rb') as attachment:
-            execl_part = MIMEBase("application", "octet-stream")
-            execl_part.set_payload(attachment.read())
-        encoders.encode_base64(execl_part)
-        execl_part.add_header('Content-Disposition', 'attachment',
-                              filename=Header(f"{os.getenv('RETURN_REPORT_NAME')}", 'utf-8').encode())
-        message.attach(execl_part)
+        if excel_attachment is not None:
+            message.attach(excel_attachment)
 
         self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
 
