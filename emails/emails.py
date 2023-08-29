@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 import smtplib
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
@@ -152,3 +153,82 @@ class Emails(object):
         df['联系电话'] = df['联系电话'].str.replace(',', '<br>')
         df['联系邮箱'] = df['联系邮箱'].str.replace(',', '<br>')
         return df.to_html(index=False, escape=False)
+
+    def extract_year_quarter(self):
+        pattern = r'(\d{4})(Q\d)'
+        match = re.search(pattern, self.subject)
+        if match:
+            year = match.group(1)
+            quarter = match.group(2)
+        else:
+            current_date = datetime.datetime.now()
+            year = str(current_date.year)
+            quarter = f'Q{str((current_date.month - 1) // 3 + 1)}'
+        return year, quarter
+
+    def send_inventory_email(self, name, email, info):
+        message = MIMEMultipart("alternative")
+        message["Subject"] = self.subject
+        message["From"] = self.sender_email
+        message["To"] = email
+        message["Cc"] = os.getenv('QUARTERLY_ASSET_EMAIL_CC')
+        html_part = MIMEMultipart("related")
+        self.html = self.html.replace('${RECEIVER}', name)
+        year, quarter = self.extract_year_quarter()
+        self.html = self.html.replace('${YEAR}', year)
+        self.html = self.html.replace('${QUARTER}', quarter)
+        self.html = self.html.replace('${TABLE}', info)
+        self.html = self.html.replace('${ASSET_URL}', os.getenv('QUARTERLY_ASSET_EMAIL_ASSET_URL'))
+        self.html = self.html.replace('${IT_SUPPORT_EMAIL}', os.getenv('QUARTERLY_ASSET_EMAIL_IT_SUPPORT_MAILBOX'))
+        html_part.attach(MIMEText(self.html, "html"))
+        signature_image = MIMEImage(self.signature_img)
+        signature_image.add_header('Content-ID', '<signature>')
+        html_part.attach(signature_image)
+        with open(os.path.join(os.path.dirname(__file__), 'confirm.png'), 'rb') as file:
+            confirm_img = file.read()
+        confirm_image = MIMEImage(confirm_img)
+        confirm_image.add_header('Content-ID', '<confirm>')
+        html_part.attach(confirm_image)
+        with open(os.path.join(os.path.dirname(__file__), 'feedback.png'), 'rb') as file:
+            feedback_img = file.read()
+        feedback_image = MIMEImage(feedback_img)
+        feedback_image.add_header('Content-ID', '<feedback>')
+        html_part.attach(feedback_image)
+        message.attach(html_part)
+
+        self.send_email(sender=self.sender_email, to=[email], cc=[os.getenv('QUARTERLY_ASSET_EMAIL_CC')],
+                        email_content=message, record_sent=True)
+
+    def send_inventory_error_email(self, info, excel_attachment=None):
+        message = MIMEMultipart("alternative")
+        message["Subject"] = self.subject
+        message["From"] = self.sender_email
+        message["To"] = self.sender_email
+        html_part = MIMEMultipart("related")
+        self.html = self.html.replace('${TABLE}', info)
+        html_part.attach(MIMEText(self.html, "html"))
+        signature_image = MIMEImage(self.signature_img)
+        signature_image.add_header('Content-ID', '<signature>')
+        html_part.attach(signature_image)
+        message.attach(html_part)
+        if excel_attachment is not None:
+            message.attach(excel_attachment)
+
+        self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
+
+    def send_inventory_summary_email(self, info, excel_attachment=None):
+        message = MIMEMultipart("alternative")
+        message["Subject"] = self.subject
+        message["From"] = self.sender_email
+        message["To"] = self.sender_email
+        html_part = MIMEMultipart("related")
+        self.html = self.html.replace('${TABLE}', info)
+        html_part.attach(MIMEText(self.html, "html"))
+        signature_image = MIMEImage(self.signature_img)
+        signature_image.add_header('Content-ID', '<signature>')
+        html_part.attach(signature_image)
+        message.attach(html_part)
+        if excel_attachment is not None:
+            message.attach(excel_attachment)
+
+        self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)

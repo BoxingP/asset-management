@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Sending Record</title>
+    <style>
+    body,
+    h1,
+    h2,
+    h3,
+    p,
+    ul,
+    ol,
+    dl,
+    dd {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #F1F2F2;
+    }
+
+    .email-container {
+        background-color: #FFFFFF;
+        padding: 30px;
+        max-width: 1100px;
+        margin: 0 auto;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+    }
+
+    h2 {
+        color: #262262;
+        margin-bottom: 10px;
+    }
+
+    p {
+        margin: 1em auto;
+    }
+
+    hr {
+        border: none;
+        border-top: 2px solid #8E8E8E;
+        margin: 10px 0;
+    }
+
+    .footer {
+        margin-top: 10px;
+        color: #8E8E8E;
+        font-size: 70%;
+    }
+
+    table.dataframe {
+        border-collapse: collapse;
+        width: 100%;
+        background-color: #FFFFFF;
+        font-size: 90%;
+    }
+
+    table.dataframe th,
+    table.dataframe td {
+        border: 1px solid #DDDDDD;
+        text-align: left;
+    }
+
+    table.dataframe th {
+        white-space: nowrap;
+        background-color: #F2F2F2;
+        padding: 8px;
+    }
+
+    table.dataframe tbody tr.failed {
+        background-color: #E71316;
+        color: #FFFFFF;
+    }
+    </style>
+</head>
+
+<body>
+    <table class="email-container">
+        <tr>
+            <td>
+                <h2>日志记录</h2>
+                <p>最新一次的盘点提醒邮件已完成发送，附件为此次发送的收件人列表，以下为详细发送情况：</p>
+                <div id="table-container">
+                    ${TABLE}
+                </div>
+                <p>请及时检查发送不成功的记录。</p>
+                <hr>
+                <div class="footer">
+                    <img src="cid:signature" alt="Signature"><br>
+                    <span>&copy; Thermo Fisher Scientific</span>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
