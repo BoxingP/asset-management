@@ -1,5 +1,6 @@
 import errno
 import os
+import re
 from email import encoders
 from email.header import Header
 from email.mime.base import MIMEBase
@@ -54,10 +55,32 @@ def generate_issue_data(dataframe, validate_result, key_column):
     return result_df
 
 
-def validate_name_uniqueness(index, dataframe, column):
+def contains_chinese(text):
+    chinese_pattern = re.compile(r'[\u4e00-\u9fff]+')
+    match = chinese_pattern.search(text)
+    return bool(match)
+
+
+def contains_only_chinese(text):
+    chinese_pattern = re.compile(r'^[\u4e00-\u9fff]+$')
+    match = chinese_pattern.match(text)
+    return bool(match)
+
+
+def validate_name(index, dataframe, column):
+    has_nan_or_empty = dataframe[column].isna() | (dataframe[column] == '')
+    if has_nan_or_empty.any():
+        return {'index': index, 'reason': '员工名字不存在'}
     is_uniqueness = dataframe[column].nunique() == 1
     if not is_uniqueness:
         return {'index': index, 'reason': '员工名字不唯一'}
+    else:
+        name = dataframe[column].iloc[0]
+        if contains_chinese(name):
+            if not contains_only_chinese(name):
+                return {'index': index, 'reason': '员工名字不只包含中文'}
+        else:
+            return {'index': index, 'reason': '员工名字不包含中文'}
 
 
 def validate_sn_uniqueness(index, dataframe, column):
@@ -69,7 +92,7 @@ def validate_sn_uniqueness(index, dataframe, column):
 def validate_info(dataframe, name_column, sn_column):
     validate_result = []
     for index, info in dataframe.groupby(level=0):
-        validate_result.append(validate_name_uniqueness(index, info, name_column))
+        validate_result.append(validate_name(index, info, name_column))
         validate_result.append(validate_sn_uniqueness(index, info, sn_column))
     validate_result = list(filter(lambda item: item is not None, validate_result))
     result = {}
