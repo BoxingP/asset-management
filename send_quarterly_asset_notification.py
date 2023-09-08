@@ -120,6 +120,15 @@ def clean_email(dataframe, email_column):
     return dataframe
 
 
+def get_columns_as_str(columns, dtype=str):
+    columns_list = columns.split(',') if columns else []
+    dtype_dict = {}
+    if columns_list:
+        for column in columns_list:
+            dtype_dict[column] = dtype
+    return dtype_dict
+
+
 def get_visible_sheet_name(excel_file):
     sheets = openpyxl.load_workbook(excel_file, read_only=True).worksheets
     visible_sheets = []
@@ -156,8 +165,9 @@ def send_notification():
     sn_column = os.getenv('QUARTERLY_ASSET_REPORT_SN_COLUMN')
     excel_file = get_excel_file()
     visible_sheet_name = get_visible_sheet_name(excel_file)
+    dtype_dict = get_columns_as_str(os.getenv('QUARTERLY_ASSET_REPORT_STR_COLUMNS'))
 
-    origin_df = pd.read_excel(excel_file, sheet_name=visible_sheet_name, dtype={'资产号': str})
+    origin_df = pd.read_excel(excel_file, sheet_name=visible_sheet_name, dtype=dtype_dict)
     selected_columns = os.getenv('QUARTERLY_ASSET_REPORT_COLUMN').split(',')
     df = origin_df.loc[:, selected_columns]
     df = df.dropna(how='all')
