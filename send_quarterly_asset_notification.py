@@ -6,6 +6,7 @@ from email.header import Header
 from email.mime.base import MIMEBase
 from pathlib import Path
 
+import openpyxl
 import pandas as pd
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -119,6 +120,17 @@ def clean_email(dataframe, email_column):
     return dataframe
 
 
+def get_visible_sheet_name(excel_file):
+    sheets = openpyxl.load_workbook(excel_file, read_only=True).worksheets
+    visible_sheets = []
+    for sheet in sheets:
+        if sheet.sheet_state != 'hidden':
+            visible_sheets.append(sheet.title)
+    if len(visible_sheets) != 1:
+        raise Exception('The Excel file should contain only one visible sheet')
+    return visible_sheets[0]
+
+
 def get_excel_file():
     folder_path = Path('/', *os.getenv('REPORT_FOLDER').split(','),
                        *os.getenv('QUARTERLY_ASSET_REPORT_FOLDER').split(',')).resolve()
@@ -143,7 +155,9 @@ def send_notification():
     model_column = os.getenv('QUARTERLY_ASSET_REPORT_MODEL_COLUMN')
     sn_column = os.getenv('QUARTERLY_ASSET_REPORT_SN_COLUMN')
     excel_file = get_excel_file()
-    origin_df = pd.read_excel(excel_file, dtype={'资产号': str})
+    visible_sheet_name = get_visible_sheet_name(excel_file)
+
+    origin_df = pd.read_excel(excel_file, sheet_name=visible_sheet_name, dtype={'资产号': str})
     selected_columns = os.getenv('QUARTERLY_ASSET_REPORT_COLUMN').split(',')
     df = origin_df.loc[:, selected_columns]
     df = df.dropna(how='all')
