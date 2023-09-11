@@ -11,6 +11,8 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
+from databases.emp_collect_database import EMPCollectDatabase
+from databases.emp_info_database import EMPInfoDatabase
 from emails.emails import Emails
 from utils.email_logger import EmailSendingLogger
 
@@ -90,11 +92,19 @@ def validate_sn_uniqueness(index, dataframe, column):
         return {'index': index, 'reason': '设备序列号有重复'}
 
 
+def validate_band(index):
+    emp_info_database = EMPInfoDatabase()
+    emp_collect_database = EMPCollectDatabase()
+    if emp_info_database.is_china_vip(index) or emp_collect_database.is_high_band(index):
+        return {'index': index, 'reason': '员工级别高'}
+
+
 def validate_info(dataframe, name_column, sn_column):
     validate_result = []
     for index, info in dataframe.groupby(level=0):
         validate_result.append(validate_name(index, info, name_column))
         validate_result.append(validate_sn_uniqueness(index, info, sn_column))
+        validate_result.append(validate_band(index))
     validate_result = list(filter(lambda item: item is not None, validate_result))
     result = {}
     for entry in validate_result:

@@ -3,3 +3,5 @@ python-dotenv~=1.0.0
 wcwidth~=0.2.6
 beautifulsoup4~=4.11.1
 openpyxl~=3.1.2
+SQLAlchemy~=2.0.18
+pyodbc~=4.0.39
