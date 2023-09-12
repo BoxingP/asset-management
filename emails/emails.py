@@ -167,14 +167,14 @@ class Emails(object):
         return year, quarter
 
     def send_inventory_email(self, name, email, info):
+        year, quarter = self.extract_year_quarter()
         message = MIMEMultipart("alternative")
-        message["Subject"] = self.subject
+        message["Subject"] = self.subject.replace('YEAR', year).replace('QUARTER', quarter)
         message["From"] = self.sender_email
         message["To"] = email
         message["Cc"] = os.getenv('QUARTERLY_ASSET_EMAIL_CC')
         html_part = MIMEMultipart("related")
         self.html = self.html.replace('${RECEIVER}', name)
-        year, quarter = self.extract_year_quarter()
         self.html = self.html.replace('${YEAR}', year)
         self.html = self.html.replace('${QUARTER}', quarter)
         self.html = self.html.replace('${TABLE}', info)
