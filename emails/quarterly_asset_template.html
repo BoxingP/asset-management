@@ -50,10 +50,6 @@
         white-space: nowrap;
         background-color: #F2F2F2;
     }
-
-    #highlight {
-        background-color: yellow;
-    }
     </style>
 </head>
 
@@ -61,31 +57,32 @@
     <table class="email-container">
         <tr>
             <td>
-                <p>${RECEIVER}同事您好,</p>
-                <p>我们是IT部门的，目前正在进行的是${YEAR}年度${QUARTER}季度资产盘点，由于您上次在资产管理系统内进行确认的时间在90天以前，所以我们需要您的协助确认您当前的登记信息是否与您实际在用的一致。<br>注意需要您登入资产管理系统后进行确认，确认后您的确认的时间会在Cycle Count中刷新。</p>
-                <p style="margin-bottom: 0;">IT资产管理系统：<a href="${ASSET_URL}" target="_blank">http://itassetmanagement</a> （非公司网络请先连接VPN）</p>
-                <p style="margin: 0 auto 0 2em;">用户名为：APAC\您的帐号</p>
-                <p style="margin: 0 auto auto 2em">密码为：您的密码</p>
+                <p>尊敬的${RECEIVER}同事,</p>
+                <p>为了维护公司资产的准确性和完整性，我们需要您的配合和支持。</p>
+                <p>请您登入资产管理系统并完成以下操作：</p>
+                <p style="margin: auto auto 0 2em;">资产系统网址 <a href="${ASSET_URL}" target="_blank">http://itassetmanagement</a> （需公司网络或使用VPN连接）</p>
+                <p style="margin: 0 auto 0 4em;">用户名为：APAC\您的帐号</p>
+                <p style="margin: 0 auto auto 4em">密码为：您的密码</p>
 
-                <p>依据资产盘点的条件规则，您当前待确认的资产信息如下（以下列表仅为本次待确认资产，非您名下所管理的所有资产），</p>
+                <p>需要您确认使用情况的资产如下：</p>
                 <div id="table-container">
                     ${TABLE}
                 </div>
-                <p>如果您确认名下清单中的资产您可以：</p>
+                <p>如何确认资产：</p>
                 <ol>
                     <li>勾选相应的资产条目</li>
                     <li>点击资产确认的按钮</li>
-                    <li>完成后您会发现您的确认日期已经被更新</li>
+                    <li>完成后您会发现您的确认日期（Cycle Count）已经被更新</li>
                 </ol>
                 <img src="cid:confirm" alt="Confirm"><br>
-                <p><span id="highlight">如果发现有不属于您在保管的电脑资产您可以：</span></p>
+                <p>如何提交异常申诉：</p>
                 <ol>
                     <li>选中不属于您的资产</li>
                     <li>点击错误反馈的按钮并在弹出的窗口中简单说明，然后提交</li>
                     <li>在完成后相应资产的状态会改变，我们会稍候统计错误的信息然后再与您进行二次确认</li>
                 </ol>
                 <img src="cid:feedback" alt="Feedback"><br>
-                <p>如有其它问题请回复<a href="mailto:${IT_SUPPORT_EMAIL}">${IT_SUPPORT_EMAIL}</a>，我们在收到您的反馈后联系您。</p>
+                <p>如有其他问题请回复<a href="mailto:${IT_SUPPORT_EMAIL}">${IT_SUPPORT_EMAIL}</a>，我们在收到您的反馈后联系您。</p>
                 <br>
                 <p>Best Regards,<br>China IT资产管理团队</p>
                 <p><a href="mailto:${IT_SUPPORT_EMAIL}">${IT_SUPPORT_EMAIL}</a> | <a href="https://www.thermofisher.cn/">thermofisher.cn</a></p>
