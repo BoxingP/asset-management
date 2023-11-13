@@ -233,7 +233,7 @@ class Emails(object):
 
         self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
 
-    def send_mfa_request_email(self, email, manager_email):
+    def send_mfa_request_email(self, email, manager_email, msg_attachment=None):
         message = MIMEMultipart("alternative")
         message["Subject"] = '请您在11月17日前完成多重因子认证（MFA）方式'
         message["From"] = self.sender_email
@@ -253,6 +253,8 @@ class Emails(object):
         signature_image.add_header('Content-ID', '<header>')
         html_part.attach(signature_image)
         message.attach(html_part)
+        if msg_attachment is not None:
+            message.attach(msg_attachment)
 
         self.send_email(sender=self.sender_email, to=[email], cc=[manager_email], email_content=message,
                         record_sent=True)

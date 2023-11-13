@@ -41,6 +41,16 @@ def attach_excel(excel_file):
     return execl
 
 
+def attach_msg(msg_file):
+    with open(msg_file, 'rb') as attachment:
+        msg = MIMEBase("application", "octet-stream")
+        msg.set_payload(attachment.read())
+    encoders.encode_base64(msg)
+    msg.add_header('Content-Disposition', 'attachment',
+                   filename=Header('请协助更新Workday中的电话信息 Please Update My Additional Work Phone.msg', 'utf-8').encode())
+    return msg
+
+
 def generate_issue_data(dataframe, validate_result, key_column):
     result_dict = {}
     dataframe[key_column] = dataframe[key_column].str.lower()
@@ -93,6 +103,16 @@ def get_visible_sheet_name(excel_file):
     return visible_sheets[0]
 
 
+def get_msg_file():
+    folder_path = Path('/', *os.getenv('REPORT_FOLDER').split(',')).resolve()
+    files = os.listdir(folder_path)
+    target_file = [Path(folder_path, file) for file in files if file.__contains__('Workday')]
+    if not target_file:
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), 'related msg file')
+    else:
+        return target_file[0]
+
+
 def get_excel_file():
     folder_path = Path('/', *os.getenv('REPORT_FOLDER').split(',')).resolve()
     files = os.listdir(folder_path)
@@ -114,6 +134,7 @@ def send_notification():
     user_column = os.getenv('MFA_REPORT_USER_COLUMN')
     line_manager_column = os.getenv('MFA_REPORT_LINE_MANAGER_COLUMN')
     excel_file = get_excel_file()
+    msg_file = get_msg_file()
     visible_sheet_name = get_visible_sheet_name(excel_file)
     df = pd.read_excel(excel_file, sheet_name=visible_sheet_name)
 
@@ -126,7 +147,7 @@ def send_notification():
         Emails('mfa_error').send_mfa_error_email(issue_data.to_html(index=False), attach_excel(excel_file))
     else:
         for index, row in df.iterrows():
-            Emails('mfa_request').send_mfa_request_email(row['User'], row['Line Manager'])
+            Emails('mfa_request').send_mfa_request_email(row['User'], row['Line Manager'], attach_msg(msg_file))
 
     sent_summary_info = generate_summary_data()
     Emails('mfa_summary').send_mfa_summary_email(sent_summary_info, attach_excel(excel_file))
