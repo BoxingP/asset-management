@@ -235,7 +235,7 @@ class Emails(object):
 
     def send_mfa_request_email(self, email, manager_email, msg_attachment=None):
         message = MIMEMultipart("alternative")
-        message["Subject"] = '请您在11月17日前完成多重因子认证（MFA）方式'
+        message["Subject"] = '[IT通知] 请您在11月17日前完成多重因子认证（MFA）方式'
         message["From"] = self.sender_email
         message["To"] = email
         message["Cc"] = manager_email
@@ -247,11 +247,6 @@ class Emails(object):
         self.html = self.html.replace('${CONTACT_URL}', os.getenv('MFA_REQUEST_CONTACT_URL'))
         self.html = self.html.replace('${CONTACT_EMAIL}', os.getenv('MFA_REQUEST_CONTACT_EMAIL'))
         html_part.attach(MIMEText(self.html, "html"))
-        with open(os.path.join(os.path.dirname(__file__), 'header.png'), 'rb') as file:
-            header = file.read()
-        signature_image = MIMEImage(header)
-        signature_image.add_header('Content-ID', '<header>')
-        html_part.attach(signature_image)
         message.attach(html_part)
         if msg_attachment is not None:
             message.attach(msg_attachment)
