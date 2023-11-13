@@ -232,3 +232,61 @@ class Emails(object):
             message.attach(excel_attachment)
 
         self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
+
+    def send_mfa_request_email(self, email, manager_email):
+        message = MIMEMultipart("alternative")
+        message["Subject"] = '请您在11月17日前完成多重因子认证（MFA）方式'
+        message["From"] = self.sender_email
+        message["To"] = email
+        message["Cc"] = manager_email
+        html_part = MIMEMultipart("related")
+        self.html = self.html.replace('${COLLEAGUE}', self.extract_name(email, is_firstname=True))
+        self.html = self.html.replace('${ATTACHMENT_URL}', os.getenv('MFA_REQUEST_ATTACHMENT_URL'))
+        self.html = self.html.replace('${ANDROID_URL}', os.getenv('MFA_REQUEST_ANDROID_URL'))
+        self.html = self.html.replace('${IOS_URL}', os.getenv('MFA_REQUEST_IOS_URL'))
+        self.html = self.html.replace('${CONTACT_URL}', os.getenv('MFA_REQUEST_CONTACT_URL'))
+        self.html = self.html.replace('${CONTACT_EMAIL}', os.getenv('MFA_REQUEST_CONTACT_EMAIL'))
+        html_part.attach(MIMEText(self.html, "html"))
+        with open(os.path.join(os.path.dirname(__file__), 'header.png'), 'rb') as file:
+            header = file.read()
+        signature_image = MIMEImage(header)
+        signature_image.add_header('Content-ID', '<header>')
+        html_part.attach(signature_image)
+        message.attach(html_part)
+
+        self.send_email(sender=self.sender_email, to=[email], cc=[manager_email], email_content=message,
+                        record_sent=True)
+
+    def send_mfa_error_email(self, info, excel_attachment=None):
+        message = MIMEMultipart("alternative")
+        message["Subject"] = self.subject
+        message["From"] = self.sender_email
+        message["To"] = self.sender_email
+        html_part = MIMEMultipart("related")
+        self.html = self.html.replace('${TABLE}', info)
+        html_part.attach(MIMEText(self.html, "html"))
+        signature_image = MIMEImage(self.signature_img)
+        signature_image.add_header('Content-ID', '<signature>')
+        html_part.attach(signature_image)
+        message.attach(html_part)
+        if excel_attachment is not None:
+            message.attach(excel_attachment)
+
+        self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
+
+    def send_mfa_summary_email(self, info, excel_attachment=None):
+        message = MIMEMultipart("alternative")
+        message["Subject"] = self.subject
+        message["From"] = self.sender_email
+        message["To"] = self.sender_email
+        html_part = MIMEMultipart("related")
+        self.html = self.html.replace('${TABLE}', info)
+        html_part.attach(MIMEText(self.html, "html"))
+        signature_image = MIMEImage(self.signature_img)
+        signature_image.add_header('Content-ID', '<signature>')
+        html_part.attach(signature_image)
+        message.attach(html_part)
+        if excel_attachment is not None:
+            message.attach(excel_attachment)
+
+        self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
