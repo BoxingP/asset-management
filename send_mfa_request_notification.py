@@ -147,7 +147,7 @@ def send_notification():
         Emails('mfa_error').send_mfa_error_email(issue_data.to_html(index=False), attach_excel(excel_file))
     else:
         for index, row in df.iterrows():
-            Emails('mfa_request').send_mfa_request_email(row['User'], row['Line Manager'], attach_msg(msg_file))
+            Emails('mfa_request').send_mfa_request_email(row['User'], attach_msg(msg_file))
 
     sent_summary_info = generate_summary_data()
     Emails('mfa_summary').send_mfa_summary_email(sent_summary_info, attach_excel(excel_file))

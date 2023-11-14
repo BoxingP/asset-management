@@ -24,36 +24,6 @@
         box-sizing: border-box;
     }
 
-    ol.method {
-        list-style-type: none;
-        counter-reset: method;
-    }
-
-    ol.method>li.method {
-        counter-increment: method;
-    }
-
-    .message[lang="zh"] ol.method>li.method:before {
-        content: "方法 "counter(method) ". ";
-    }
-
-    .message[lang="en"] ol.method>li.method:before {
-        content: "Method "counter(method) ". ";
-    }
-
-    ol.method>li.method>ol.step {
-        list-style-type: none;
-        counter-reset: step;
-    }
-
-    ol.method>li.method>ol.step>li.step {
-        counter-increment: step;
-    }
-
-    ol.method>li.method>ol.step>li.step:before {
-        content: counter(method) ") ";
-    }
-
     .footer {
         margin-top: 10px;
         font-size: 70%;
@@ -63,7 +33,6 @@
         border: 1px solid black;
         margin: 10% auto auto auto;
     }
-
     </style>
 </head>
 
@@ -72,63 +41,49 @@
     <div class="message-container">
         <div class="message" lang="zh">
             <p>尊敬的${COLLEAGUE}，</p>
-            <p>我们是IT服务团队，来信是请您在11月17日前完成多重因子认证（MFA）方式。如您未完成将在此日期后影响您在个人设备访问公司应用，如Outlook，Teams等。</p>
+            <br>
+            <p>我们是IT服务团队，来信是请您在11月17日前完成多重因子认证（MFA）方式。如您未完成配置将在此日期后影响您在个人设备访问公司应用，如Outlook，Teams等。</p>
             <p>以下2种方式均可以完成MFA的配置要求:</p>
-            <ol class="method">
-                <li class="method">使用电话或短信认证
-                    <ol class="step">
-                        <li class="step">请使用<a href="${ATTACHMENT_URL}" target="_blank">附件模板</a>，修改电话信息后发送给Colleague
-                            Service团队更新用于MFA认证的电话号码
-                        </li>
-                        <li class="step">等待Colleague Service团队更新完后，请登入<a
-                                href="https://mysignins.microsoft.com/security-info" target="_blank">https://mysignins.microsoft.com/security-info</a>
-                        </li>
-                    </ol>
-                </li>
-                <li class="method">使用认证APP
-                    <ol class="step">
-                        <li class="step">安卓用户：<a href="${ANDROID_URL}" target="_blank">MFA配置指引-安卓使用Microsoft
-                            Authenticator身份验证.docx</a></li>
-                        <li class="step">苹果用户：<a href="${IOS_URL}" target="_blank">MFA配置指引-苹果使用Microsoft
-                            Authenticator身份验证.docx</a></li>
-                    </ol>
-                </li>
-            </ol>
+            <p style="margin-left: 2em;">1. 使用电话或短信认证</p>
+            <p style="margin-left: 4em;">a) 请使用<a href="${ATTACHMENT_URL}" target="_blank">附件模板</a>，修改模板中的电话号码为您的电话号码，发件人改为您自己，然后发送给Colleague
+                Service团队用于更新MFA所使用的认证电话</p>
+            <p style="margin-left: 4em;">b) 待更新完成后，请登入<a
+                    href="https://mysignins.microsoft.com/security-info" target="_blank">https://mysignins.microsoft.com/security-info</a>
+                确认手机号已经同步完成
+            </p>
+            <p style="margin-left: 2em;">2. 使用认证APP</p>
+            <p style="margin-left: 4em;">a) 安卓用户：<a href="${ANDROID_URL}" target="_blank">MFA配置指引-安卓使用Microsoft
+                Authenticator身份验证.docx</a></p>
+            <p style="margin-left: 4em;">b) 苹果用户：<a href="${IOS_URL}" target="_blank">MFA配置指引-苹果使用Microsoft
+                Authenticator身份验证.docx</a></p>
             <p>如果您对配置工作存在疑问或者需要具体的指引，请联系<a href="${CONTACT_URL}">IT服务团队</a>。</p>
-            <p>附件：<br><a href="${ATTACHMENT_URL}" target="_blank">通过邮件更新Workday的模板.msg</a></p>
+            <br>
+            <p>您的IT服务团队</p>
         </div>
         <hr>
         <div class="message" lang="en">
             <p>Dear ${COLLEAGUE},</p>
+            <br>
             <p>We are an IT onsite service team, and we are writing to request that you complete the Multiple Factor
                 Authentication (MFA) method before November 17th. If you miss the target, you will not be able to use
                 your personal device access company applications such as Outlook and Teams after November 17th.</p>
             <p>You can go through the following 2 methods which are supported in MFA:</p>
-            <ol class="method">
-                <li class="method">Use phone or SMS authentication
-                    <ol class="step">
-                        <li class="step">Use the <a href="${ATTACHMENT_URL}" target="_blank">attachment template</a> to
-                            modify the phone number and send it to the Colleague Service team to update the phone number
-                            which is used for MFA authentication
-                        </li>
-                        <li class="step">Wait for the Colleague Service team to complete the update, then log in <a
-                                href="https://mysignins.microsoft.com/security-info" target="_blank">https://mysignins.microsoft.com/security-info</a>
-                            to confirm that your phone number is displayed on the page
-                        </li>
-                    </ol>
-                </li>
-                <li class="method">Use an authentication app
-                    <ol class="step">
-                        <li class="step">Android User: <a href="${ANDROID_URL}" target="_blank">MFA Configuration
-                            Guide-Android uses Microsoft Authenticator authentication.docx</a></li>
-                        <li class="step">IOS User: <a href="${IOS_URL}" target="_blank">MFA Configuration Guide-Apple
-                            uses Microsoft Authenticator authentication.docx</a></li>
-                    </ol>
-                </li>
-            </ol>
+            <p style="margin-left: 2em;">1. Use phone or SMS authentication</p>
+            <p style="margin-left: 4em;">a) Use the <a href="${ATTACHMENT_URL}" target="_blank">attachment template</a>
+                to modify the phone number and Sender is your email address, then send it to the Colleague Service team
+                to update the phone number which is used for MFA authentication</p>
+            <p style="margin-left: 4em;">b) Wait the update is completed, then log in <a
+                    href="https://mysignins.microsoft.com/security-info" target="_blank">https://mysignins.microsoft.com/security-info</a>
+                to confirm that your phone number is displayed on the page</p>
+            <p style="margin-left: 2em;">2. Use an authentication app</p>
+            <p style="margin-left: 4em;">a) Android User: <a href="${ANDROID_URL}" target="_blank">MFA Configuration
+                Guide-Android uses Microsoft Authenticator authentication.docx</a></p>
+            <p style="margin-left: 4em;">b) IOS User: <a href="${IOS_URL}" target="_blank">MFA Configuration Guide-Apple
+                uses Microsoft Authenticator authentication.docx</a></p>
             <p>If you have any questions about the configuration work or need specific guidance, please contact the <a
                     href="${CONTACT_URL}" target="_blank">IT service team</a>.</p>
-            <p>Attachment：<br><a href="${ATTACHMENT_URL}" target="_blank">Update Workday Templates via Email.msg</a></p>
+            <br>
+            <p>Your IT service team</p>
         </div>
         <hr class="bold-hr">
         <div class="footer">

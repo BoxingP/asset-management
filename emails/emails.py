@@ -233,12 +233,11 @@ class Emails(object):
 
         self.send_email(sender=self.sender_email, to=[self.sender_email], email_content=message)
 
-    def send_mfa_request_email(self, email, manager_email, msg_attachment=None):
+    def send_mfa_request_email(self, email, msg_attachment=None):
         message = MIMEMultipart("alternative")
         message["Subject"] = '[IT通知] 请您在11月17日前完成多重因子认证（MFA）方式'
         message["From"] = self.sender_email
         message["To"] = email
-        message["Cc"] = manager_email
         html_part = MIMEMultipart("related")
         self.html = self.html.replace('${COLLEAGUE}', self.extract_name(email, is_firstname=True))
         self.html = self.html.replace('${ATTACHMENT_URL}', os.getenv('MFA_REQUEST_ATTACHMENT_URL'))
@@ -251,7 +250,7 @@ class Emails(object):
         if msg_attachment is not None:
             message.attach(msg_attachment)
 
-        self.send_email(sender=self.sender_email, to=[email], cc=[manager_email], email_content=message,
+        self.send_email(sender=self.sender_email, to=[email], email_content=message,
                         record_sent=True)
 
     def send_mfa_error_email(self, info, excel_attachment=None):
